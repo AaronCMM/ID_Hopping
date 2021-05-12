@@ -36,12 +36,11 @@ int main()
 	struct can_frame frame;
 	struct can_filter rfilter[1];
 	s = socket(PF_CAN, SOCK_RAW, CAN_RAW);  //创建套接字
-	strncpy(ifr.ifr_name, "can0",IFNAMSIZ - 1 );
+	strncpy(ifr.ifr_name, "vcan0",IFNAMSIZ - 1 );
 	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 
 	ioctl(s, SIOCGIFINDEX, &ifr);     //指定can0设备
-	//addr.can_family = AF_CAN;
-	//addr.can_ifindex = ifr.ifr_ifindex;
+
 	ifr.ifr_ifindex = if_nametoindex(ifr.ifr_name);
 	if (!ifr.ifr_ifindex) {
 		perror("if_nametoindex");
@@ -78,8 +77,8 @@ int main()
 	string canid;
 	id_map idmap;
 
-	vector<int> get_idpool(string d,int size);    //声明
-
+	vector<int> get_idpool(string d,int size,bool isfirst);    //声明
+    bool isfirst=true;   
 
 	while(i<1000){
 		/* 时间字符串 */
@@ -105,7 +104,7 @@ int main()
 
 				stringstream ss;
 				ss<<hex<<canid;
-                                ss>>idmap.node_id;   
+                ss>>idmap.node_id;   
 			
 				idmap.index=0;
 				idmap.cur_id=canid;
@@ -114,29 +113,29 @@ int main()
 				if(canid!=newid){
 					//string newid=to_string(frame.can_id);
 					int index=(int)frame.data[0];
-					cout<<"the newid is "<< newid<<endl;
+					cout<<"the recv_id is "<< newid<<endl;
 					stringstream ss;
 					ss<<hex<<stoi(idmap.node_id);
 
 					string check;
-					ss>>check;
+					ss>>check;         // 原始id
  					transform(check.begin(), check.end(), check.begin(), ::toupper); 
 					unsigned char * mac = NULL;
 					int times=index-idmap.index;
 					
-						cout<<"check is: "<<check<<endl;
-						vector<int> cid=get_idpool(check,times);
+						cout<<"the ori_id is: "<<check<<endl;
+						vector<int> cid=get_idpool(check,times,isfirst);
+						isfirst=false;
 						int temp=cid[times-1];
-						//index-=1;
-					cout<<"the last check:  "<<to_string(temp)<<endl;
+					cout<<"the latest checked_id is: "<<to_string(temp)<<endl;
 					int m=newid.compare(to_string(temp));
 					if(m==0){
-						cout<<"updata!\n";
+						cout<<"update table!\n";
 						canid=newid;
 
 					}
 					else{
-						cout<<"fasle\n";
+						cout<<"CAN ID ERROR,reject receive \n";
 						return(0);
 					}
 				}

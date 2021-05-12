@@ -19,9 +19,7 @@ map<int,int> hash_map;
 
 
 // 获取所有ID，并排序。根据优先级，分配PID。
-
 void sort_pid()
-	//int main(int argc, char * argv[])
 {
 	filebuf fb;
 	string filename = "test.txt";
@@ -43,18 +41,6 @@ void sort_pid()
 		string ret;
 		int i=0;
 		token = strtok(p,d);
-		/*while(token!=NULL){
-			i+=1;
-			token=strtok(NULL,d);
-			if(i==1){
-				ret=token;
-				if(hash.find(ret)==hash.end()){
-					cout<<ret<<endl;
-					hash.insert(ret);
-				}
-				break;
-			}
-		}*/
 		
 		token=strtok(NULL,d);
 		string str =token;
@@ -79,7 +65,7 @@ void sort_pid()
 		cout<<id.first<<'\t'<<id.second<<endl;
 	}
 
-	// 计算保存优先级需要的位数
+	// 计算 pid 的位数
 	int pid=0;
 	while(size!=0){
 		size/=2;
@@ -87,9 +73,10 @@ void sort_pid()
 	}
 	cout<<"pid is "<<pid<<endl;
 
-	remain_id=11-pid;      // 剩下的可用来生成随机id的位数*/
+	remain_id=11-pid;      // 剩下的可用来生成随机id的位数
 }
 
+//get_pid: 传入 原id 的值，查找map中对应 oid的pid，输出 二进制形式的 pid
 vector<int> get_pid(string o){
 
 	vector<int>m;
@@ -100,11 +87,6 @@ vector<int> get_pid(string o){
 
 	if(hash_map.find(d)!=hash_map.end()){
 		pid=hash_map[d];
-
-		/*for(int i =4; i>=0; i--)
-		{
-			m.push_back(((pid>>i)&1));//与1做位操作，前面位数均为0
-		}*/
 
 	}
 	else{
@@ -132,103 +114,20 @@ int bit_int(vector<int>& vid){
 	return id;
 }
 
-// 传入 两个参数 原始ID，生成的ID 个数 
-/*int main(int argc, char * argv[])
-{
-	if(argc < 3) {
-		cout << "Please set the oid and pool_size number !" << endl;
-		return -1;
-	}
 
-	char* sha2="sha256";
-	char key[] = "4444";                //secret key
-
-	string data=argv[1];                 //
-	int pool_size=atoi(argv[2]);
-	printf("pool_size is:%d\n",pool_size);
-
-	unsigned char * mac = NULL;
-	unsigned int mac_length = 0;
-
-
-	vector<int>vid;
-	vector<int>newid;
-	vector<int>pid=get_pid(data);
-
-	int a[6];
-
-	while(pool_size!=0){
-
-		int ret = HmacEncode(sha2, key, strlen(key), data.c_str(), data.length(), mac, mac_length);	
-
-		if(0 == ret) {
-			cout << "Algorithm HMAC encode succeeded!" << endl;
-		}
-		else {
-			cout << "Algorithm HMAC encode failed!" << endl;
-			return -1;
-		}
-
-		cout << "mac:";
-		for(int i = 0; i < mac_length; i++) {
-			printf("%-03x", (unsigned int)mac[i]);
-
-		}
-		cout << endl;
-		int c=0;
-		int b[6];
-		unsigned int temp=(unsigned int)mac[0];
-		while(temp!=0 && c<6){
-			b[c++]=temp%2;
-			temp/=2;
-		}
-
-		for(int j=c-1;j>=0;j--){
-			a[6-j-1]=b[j];
-		}
-
-		for(auto& p:pid){
-			vid.push_back(p);
-			cout<<p;
-		}
-		cout<<endl;
-
-		for(int j=0;j<6;j++){
-			vid.push_back(a[j]);
-			printf("%d",a[j]);
-		}
-	
-		int v=bit_int(vid);
-		printf("-----------\n");
-		//printf("%d\n",v);
-		newid.push_back(v);        // newid 作为 idpool 存储所有生成的新的随机ID
-		data=to_string(v);        // 将新生成的newid 作为 HMAC的参数再次传入  f(id)=f(id,k);
-		vid.clear();
-		pool_size-=1;
-	}
-
-	printf("\n");
-
-	if(mac) {
-		free(mac);
-		cout << "mac is freed!" << endl;
-	}
-
-	return 0;
-}*/
-
-
-// 传入 两个参数 原始ID，生成的ID 个数(版本2) 
-vector<int> get_idpool(string d,int size)
+// 传入 两个参数：原始ID，ID_Pool_size(版本2) 
+vector<int> get_idpool(string d,int size,bool isfirst)
 {
 	/*if(argc < 3) {
 		cout << "Please set the oid and pool_size number !" << endl;
 		return -1;
 	}*/
-	sort_pid();
+	if(isfirst){
+		sort_pid();
+	}
 
 	char* sha2="sha256";
-	char key[] = "4444";                //secret key
+	char key[] = "4444";       // random slot          
 
 	/*string data=argv[1];                
 	int pool_size=atoi(argv[2]);*/
@@ -240,11 +139,11 @@ vector<int> get_idpool(string d,int size)
 	unsigned int mac_length = 0;
 
 
-	vector<int>vid;
+	vector<int>vid;     //vid= pid + rid  完整的虚拟id
 	vector<int>newid;
 	vector<int>pid=get_pid(data);
 
-	int a[6];
+	int a[6];  //存RID
 
 	while(pool_size!=0){
 
@@ -289,11 +188,11 @@ vector<int> get_idpool(string d,int size)
 			printf("%d",a[j]);
 		}
 	
-		int v=bit_int(vid);
+		int v=bit_int(vid);  		// 二进制 转 int
 		printf("\n-----------");
 		 
 		newid.push_back(v);        // newid 作为 idpool 存储所有生成的新的随机ID
-		data=to_string(v);        // 将新生成的newid 作为 HMAC的参数再次传入  f(id)=f(id,k);
+		data=to_string(v);        // 将新生成的newid 作为 HMAC的参数再次传入  f(id)=f(f(id),k);
 		vid.clear();
 		pool_size-=1;
 	}

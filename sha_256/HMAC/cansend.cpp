@@ -1,5 +1,7 @@
-/* 1.报文发送程序 */
-// 对应的ECU 调用 ge_idpool 生成 备用id链表,并在设置的时间间隔内更换id
+/* 1.报文发送程序 
+对应的ECU 调用 ge_idpool 生成 备用id链表；
+为了测试，ID_Pool_Size=3; 每 5s 更换一次ID，每 2s 发送一次报文
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,12 +27,13 @@
 
 using namespace std;
 static bool  run = true;
-	int s, nbytes;
-	struct sockaddr_can addr;
-	struct ifreq ifr;
-	struct can_frame frame[2] = {{0}};
-	vector<int> idpool;
-        canid_t oid,newid;
+int s, nbytes;
+struct sockaddr_can addr;
+struct ifreq ifr;
+struct can_frame frame[2] = {{0}};
+vector<int> idpool;
+canid_t oid,newid;
+static const int id_pool_size=5;
 
 /*void milliseconds_sleep(unsigned long mSec){
 	struct timeval tv;
@@ -83,7 +86,7 @@ int cnt=0;
 
 void  UserCallback( void *obj, void *pa )
 {
-        gettimeofday(&tv,NULL);
+    gettimeofday(&tv,NULL);
 	strftime(timestamp, 128, "%X", localtime(&tv.tv_sec));
 	int l = strlen(timestamp);
 	sprintf(timestamp+l, ".%03ld", tv.tv_usec/1000);
@@ -105,7 +108,7 @@ void  UserCallback( void *obj, void *pa )
 
 void  Callback2( void *obj, void *pa )
 {
-        gettimeofday(&tv,NULL);
+    gettimeofday(&tv,NULL);
 	strftime(timestamp, 128, "%X", localtime(&tv.tv_sec));
 	int l = strlen(timestamp);
 	sprintf(timestamp+l, ".%03ld", tv.tv_usec/1000);
@@ -113,7 +116,7 @@ void  Callback2( void *obj, void *pa )
 	printf(" timestamp:%s\n",timestamp);
 	
 	int size=idpool.size();
-	if( size!=0 && cnt<3){
+	if( size!=0 && cnt<id_pool_size){
 		frame[0].can_id=(canid_t)idpool[cnt];
 		frame[0].data[0]=(__u8)(size-cnt);
 		execute();
@@ -126,11 +129,10 @@ void  Callback2( void *obj, void *pa )
 	newid=frame[0].can_id;
 }
 
-
 int main()
 {
 	s = socket(PF_CAN, SOCK_RAW, CAN_RAW);  //创建套接字
-	strncpy(ifr.ifr_name, "can0",IFNAMSIZ - 1 );
+	strncpy(ifr.ifr_name, "vcan0",IFNAMSIZ - 1 );
 	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 	ioctl(s, SIOCGIFINDEX, &ifr);     //指定vcan0设备
 
@@ -155,7 +157,6 @@ int main()
 	//禁用过滤规则，本进程不接收报文，只负责发送
 	//setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
 
-
 	//生成报文
 	frame[0].can_id = 0x0A0;
 	frame[0]. can_dlc = 1;
@@ -163,10 +164,9 @@ int main()
 	oid=0x0A0;
 	newid=0x0A0;
 
-        //调用函数，生成ID备用链表
-
-	vector<int> get_idpool(string d,int size);    //声明
-	idpool=get_idpool("A0",3);
+    //生成ID池
+	vector<int> get_idpool(string d,int size,bool isfirst);   
+	idpool=get_idpool("A0",id_pool_size,true);         
 	/*for(auto& i:idpool){
 		printf("%d ",i);
 	}*/
@@ -176,9 +176,9 @@ int main()
 
 	//cout<<idpool[0]<<endl;
 
-        CTimer ab;
-	ab.addTimer(50,50,&Callback2,( void *)0x22,(void*)0xBD);    // 5s
-	ab.addTimer(20,20,&UserCallback,( void *)0x11,(void*)0x4E);   // 2s
+    CTimer ab;
+	ab.addTimer(50,50,&Callback2,( void *)0x22,(void*)0xBD);    // 5s 发送消息
+	ab.addTimer(20,20,&UserCallback,( void *)0x11,(void*)0x4E);   // 2s 更换ID，并发送消息
 
 	ab.start();
 	getchar();
@@ -214,7 +214,7 @@ int main()
 
 
 
-       /*  
+    /*  
 	run = true;
 	pid_t pid = -1;
 	int   status;
