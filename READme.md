@@ -44,6 +44,20 @@ generate_id.cpp   ----->  ge_id
 
 main.cpp  // 测试 HMAC函数
 
+ge_seed.cpp       // 周期性更换seed
+
+### 使用NTP同步时间钟
+
+教程：https://vitux.com/how-to-install-ntp-server-and-client-on-ubuntu/
+
+http://linux.vbird.org/linux_server/0440ntp.php
+
+![image-20210517164742839](https://i.loli.net/2021/05/17/sMJiGlWzgar7FkY.png)
+
+<img src="https://i.loli.net/2021/05/17/9gvdznV1Jsu3Lyc.png" alt="image-20210517164753617" style="zoom:70%;" />
+
+<img src="https://i.loli.net/2021/05/17/oIpv9gZcOQVRbxs.png" alt="image-20210517164810907" style="zoom:70%;" />
+
 
 
 ### 系统设计
@@ -53,8 +67,9 @@ main.cpp  // 测试 HMAC函数
 逻辑：
 
 1. 设置两个定时任务
-   - 每隔 0.1 s 发送消息
-   - 每隔 1 s 更换 id
+   - 每隔 0.1 s 发送消息（周期性地发送消息）
+   - 每隔 1 s 更换 id9（周期性地更换 id，对时间要求不严格）
+   - key 需要周期性地变化（刚开始的时候，所有ECU共享一个seed，为了多变性，一段时间间隔后，所有ECU需要同步更换 seed）（对时间要求严格，如何保证全部同步？）<font color=blue>当前时间 / 变更周期 = epoch 次数，NSeed=Hash(seed，epoch)；</font>
 2. 当==更换 id 时==，发送端要发送消息给接收端。           ==发送端广播消息，id=newid，消息为 the hash index (k-1)==
 3. 接收端收到 更换id的消息，更换当前的id 列表        ==接收端，计算 newid 经过 多次hash后，是否为 nodeid ( 即 源id )==，若是，则接收该消息，并更新 table。
 4. 每个ECU都维护一张 table
@@ -90,4 +105,26 @@ main.cpp  // 测试 HMAC函数
 在树莓派的运行结果
 
 ![image-20210509145432614](https://i.loli.net/2021/05/09/KyHfbCtMpBOLTnE.png)
+
+
+
+使用基于线性反馈移位寄存器（LFSR）的伪随机发生器（PRG）进行随机化，并使用基于哈希的PRG进行同步链；
+
+![image-20210516205705125](https://i.loli.net/2021/05/17/c8CyeYPi5nKRvuB.png)
+
+<img src="https://i.loli.net/2021/05/17/9pGWfuZvVdF2QLs.png" alt="image-20210516210546445" style="zoom:50%;" />
+
+- sha_256，生成一次密钥的时间
+
+  摘自别人的论文：
+
+<img src="https://i.loli.net/2021/05/17/6DzaJktVUTFl79o.png" alt="image-20210516212920043" style="zoom:67%;" />
+
+- 
+
+key：4444，new_id：108,127,126,116,101
+
+key：1400，new_id：109，108,67,66,123
+
+key：808，new_id：109,113,121,75,123
 
