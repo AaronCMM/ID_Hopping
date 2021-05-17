@@ -12,11 +12,12 @@
 #include<set>
 #include <fstream>
 #include<map>
+
 using namespace std;
 
 int remain_id=0;               // 剩下的可用来生成随机id的位数
 map<int,int> hash_map;
-
+//char key[] = "4444";       // random slot    
 
 // 获取所有ID，并排序。根据优先级，分配PID。
 void sort_pid()
@@ -103,32 +104,18 @@ vector<int> get_pid(string o){
 	return m ;
 }
 
-int bit_int(vector<int>& vid){
-	int id=0;
-	for(int j=10;j>=0;j--){
-		if(vid[j]!=0){
-			id+=pow(2,(10-j));
-		}
-	}
-	printf("\t %d",id);
-	return id;
-}
-
+int bit_int(vector<int>& data);
 
 // 传入 两个参数：原始ID，ID_Pool_size(版本2) 
-vector<int> get_idpool(string d,int size,bool isfirst)
+vector<int> get_idpool(string d,int size,bool isfirst,string key)
 {
-	/*if(argc < 3) {
-		cout << "Please set the oid and pool_size number !" << endl;
-		return -1;
-	}*/
 	if(isfirst){
 		sort_pid();
 	}
 
 	char* sha2="sha256";
-	char key[] = "4444";       // random slot          
-
+    const char* seed=key.c_str();  
+    cout<<"argv key:"<<key<<endl;
 	/*string data=argv[1];                
 	int pool_size=atoi(argv[2]);*/
 	string data=d;
@@ -147,7 +134,7 @@ vector<int> get_idpool(string d,int size,bool isfirst)
 
 	while(pool_size!=0){
 
-		int ret = HmacEncode(sha2, key, strlen(key), data.c_str(), data.length(), mac, mac_length);	
+		int ret = HmacEncode(sha2, seed, strlen(seed), data.c_str(), data.length(), mac, mac_length);	
 
 		if(0 == ret) {
 			cout << "Algorithm HMAC encode succeeded!" << endl;
@@ -201,18 +188,7 @@ vector<int> get_idpool(string d,int size,bool isfirst)
 
 	if(mac) {
 		free(mac);
-		//cout << "mac is freed!" << endl;
 	}
 
 	return newid;
 }
-
-/*int main(){
-	vector<int>i=get_idpool("0x0A0",1);
-	int temp=i[0];
-	cout<<temp;
-	i=get_idpool(to_string(temp),1);
-	cout<<i[0];
-	
-	//sort_pid();
-}*/

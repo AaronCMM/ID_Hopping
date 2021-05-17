@@ -26,6 +26,7 @@
 #include<signal.h>
 
 using namespace std;
+
 static bool  run = true;
 int s, nbytes;
 struct sockaddr_can addr;
@@ -34,6 +35,9 @@ struct can_frame frame[2] = {{0}};
 vector<int> idpool;
 canid_t oid,newid;
 static const int id_pool_size=5;
+static const int period=20;      // seed 种子变更的周期 20s更换一次seed
+int epoch=0;           //
+int new_key,old_key;   //
 
 /*void milliseconds_sleep(unsigned long mSec){
 	struct timeval tv;
@@ -45,6 +49,8 @@ static const int id_pool_size=5;
 	}while(err<0 && errno==EINTR);
 }*/
 void milliseconds_sleep(unsigned long mSec);
+int set_seed(string s,int epoch);
+vector<int> get_idpool(string d,int size,bool isfirst,string key);   
 
 void sig_handler(int signo) 
 { 
@@ -121,12 +127,22 @@ void  Callback2( void *obj, void *pa )
 		frame[0].data[0]=(__u8)(size-cnt);
 		execute();
 		cnt++;
-		cout<<cnt<<endl;
+		cout<<"the id_pool index now is:"<<cnt<<endl;
 	}
 	else{
-		cout<<"none"<<endl;
+		cout<<"id_pool is empty!"<<endl;
 	}
 	newid=frame[0].can_id;
+}
+
+void Callback_seed( void *obj, void *pa )
+{
+	++epoch;
+	new_key= set_seed(std::to_string(old_key),epoch);
+	cout<<"epoch: "<<epoch<<"  ge_seed:"<<new_key<<endl;
+	old_key=new_key;
+	idpool.clear();
+	idpool=get_idpool("A0",id_pool_size,false,std::to_string(new_key));   
 }
 
 int main()
@@ -165,20 +181,17 @@ int main()
 	newid=0x0A0;
 
     //生成ID池
-	vector<int> get_idpool(string d,int size,bool isfirst);   
-	idpool=get_idpool("A0",id_pool_size,true);         
-	/*for(auto& i:idpool){
-		printf("%d ",i);
-	}*/
+	old_key=4444;
+	new_key=old_key; 
+	idpool=get_idpool("A0",id_pool_size,true,std::to_string(new_key));         
 	
 	// 防止被攻击者预测，推断出新ID，将倒序存储 ID链表
 	reverse(idpool.begin(),idpool.end());
 
-	//cout<<idpool[0]<<endl;
-
     CTimer ab;
-	ab.addTimer(50,50,&Callback2,( void *)0x22,(void*)0xBD);    // 5s 发送消息
-	ab.addTimer(20,20,&UserCallback,( void *)0x11,(void*)0x4E);   // 2s 更换ID，并发送消息
+	ab.addTimer(60,60,&Callback2,( void *)0x22,(void*)0xBD);    // 6s 更换ID
+	ab.addTimer(10,10,&UserCallback,( void *)0x11,(void*)0x4E);   // 1s 验证ID是否更换，并发送消息
+	ab.addTimer(200,200,&Callback_seed,( void *)0x11,(void*)0x4E);
 
 	ab.start();
 	getchar();
