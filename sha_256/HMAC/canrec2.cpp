@@ -18,14 +18,44 @@
 #include<iostream>
 #include<sstream>
 #include <algorithm>  
+#include"CTimer.h"
+
 using namespace std;
 
-char key[] = "4444";
 struct id_map{
 	string node_id;    // 保存 最原始ID号 (const)
 	int index;       // 当前 ID池中对应的 序号
 	string cur_id;      // 当前的 新id
 };
+ 
+//vector<id_map> tables;      // tables[0] 代表 keys[0] 对应的 table
+vector<int> keys={4444,1400,808};
+int cur_key=keys[0];
+int trigger=0;
+CTimer ab;
+id_map idmap;
+string init_id,canid;;
+
+void init(id_map& idmap,string& canid){
+	stringstream ss;
+	ss<<hex<<canid;
+    ss>>idmap.node_id;   
+			
+	idmap.index=0;
+	idmap.cur_id=canid;
+}
+
+void Callback_seed( void *obj, void *pa )
+{
+	++trigger;
+	if(trigger<keys.size()){
+		cur_key=keys[trigger];
+		init(idmap,init_id);
+		canid=init_id;
+		cout<<"seed has changed: "<<cur_key<<endl;
+	}
+	else cout<<"keys already used\n";
+}
 
 int main()
 {
@@ -74,10 +104,8 @@ int main()
 
 	struct timeval time[2];
 	int cnt=0;
-	string canid;
-	id_map idmap;
 
-	vector<int> get_idpool(string d,int size,bool isfirst);    //声明
+	vector<int> get_idpool(string d,int size,bool isfirst,string key);    //声明
     bool isfirst=true;   
 
 	while(i<1000){
@@ -101,13 +129,8 @@ int main()
 			string newid=to_string(frame.can_id);
 			if(cnt==0){//初始化                                                  
 				canid=to_string(frame.can_id);
-
-				stringstream ss;
-				ss<<hex<<canid;
-                ss>>idmap.node_id;   
-			
-				idmap.index=0;
-				idmap.cur_id=canid;
+				init(idmap,canid);
+				init_id=idmap.node_id;
 			}
 			else{
 				if(canid!=newid){
@@ -124,7 +147,7 @@ int main()
 					int times=index-idmap.index;
 					
 						cout<<"the ori_id is: "<<check<<endl;
-						vector<int> cid=get_idpool(check,times,isfirst);
+						vector<int> cid=get_idpool(check,times,isfirst,std::to_string(cur_key));
 						isfirst=false;
 						int temp=cid[times-1];
 					cout<<"the latest checked_id is: "<<to_string(temp)<<endl;
@@ -158,9 +181,13 @@ int main()
 			  }
 			  }*/
 			++i;
+			
+			ab.addTimer(200,200,&Callback_seed,( void *)0x11,(void*)0x4E); 
+
 		}
 
 	}
 	close(s);
+	ab.stop();
 	return 0;
 }
