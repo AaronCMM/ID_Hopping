@@ -106,7 +106,7 @@ void  UserCallback( void *obj, void *pa )
 		frame[0].data[0]=(__u8)cnt;
 	}
 	else{
-		frame[0].data[0]=(__u8)0xAB;
+		frame[0].data[0]=(__u8)cnt;
 		execute();
 	}
 	oid=newid;
@@ -118,16 +118,15 @@ void  Callback2( void *obj, void *pa )
 	strftime(timestamp, 128, "%X", localtime(&tv.tv_sec));
 	int l = strlen(timestamp);
 	sprintf(timestamp+l, ".%03ld", tv.tv_usec/1000);
-
-	printf(" timestamp:%s\n",timestamp);
 	
 	int size=idpool.size();
 	if( size!=0 && cnt<id_pool_size){
 		frame[0].can_id=(canid_t)idpool[cnt];
 		frame[0].data[0]=(__u8)(size-cnt);
-		execute();
-		cnt++;
+		
 		cout<<"the id_pool index now is:"<<cnt<<endl;
+		cnt++;
+		execute();
 	}
 	else{
 		cout<<"id_pool is empty!"<<endl;
@@ -142,7 +141,11 @@ void Callback_seed( void *obj, void *pa )
 	cout<<"epoch: "<<epoch<<"  ge_seed:"<<new_key<<endl;
 	old_key=new_key;
 	idpool.clear();
-	idpool=get_idpool("A0",id_pool_size,false,std::to_string(new_key));   
+	idpool=get_idpool("A0",id_pool_size,false,std::to_string(new_key));
+	frame[0].can_id=0x0A0;
+	oid=newid=frame[0].can_id;
+	cnt=0;
+	//execute();
 }
 
 int main()

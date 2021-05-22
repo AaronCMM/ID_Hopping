@@ -107,6 +107,8 @@ int main()
 
 	vector<int> get_idpool(string d,int size,bool isfirst,string key);    //声明
     bool isfirst=true;   
+	ab.addTimer(200,200,&Callback_seed,( void *)0x11,(void*)0x4E); 
+	ab.start();
 
 	while(i<1000){
 		/* 时间字符串 */
@@ -131,10 +133,12 @@ int main()
 				canid=to_string(frame.can_id);
 				init(idmap,canid);
 				init_id=idmap.node_id;
+				cout<<"can_id: "<<canid<<endl;
 			}
 			else{
 				if(canid!=newid){
 					//string newid=to_string(frame.can_id);
+					cout<<"canid!=newid  can_id: "<<canid<<"  new_id:"<<newid<<endl;
 					int index=(int)frame.data[0];
 					cout<<"the recv_id is "<< newid<<endl;
 					stringstream ss;
@@ -145,7 +149,7 @@ int main()
  					transform(check.begin(), check.end(), check.begin(), ::toupper); 
 					unsigned char * mac = NULL;
 					int times=index-idmap.index;
-					
+					    cout<<"index is"<<index<<endl;
 						cout<<"the ori_id is: "<<check<<endl;
 						vector<int> cid=get_idpool(check,times,isfirst,std::to_string(cur_key));
 						isfirst=false;
@@ -181,9 +185,6 @@ int main()
 			  }
 			  }*/
 			++i;
-			
-			ab.addTimer(200,200,&Callback_seed,( void *)0x11,(void*)0x4E); 
-
 		}
 
 	}

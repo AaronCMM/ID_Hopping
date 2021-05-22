@@ -122,7 +122,9 @@ http://linux.vbird.org/linux_server/0440ntp.php
 
 - 
 
-key：4444，new_id：108,127,126,116,101（对应的hex：65）
+0A0 —> 160
+
+key：4444，new_id：108,127,126,116,101（对应的hex：6c，7f，7e，74，65）
 
 key：1400，new_id：109，108,67,66,123（对应的hex：7b，42，43，6c，6d）
 
