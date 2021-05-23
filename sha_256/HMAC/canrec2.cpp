@@ -30,7 +30,7 @@ struct id_map{
  
 //vector<id_map> tables;      // tables[0] 代表 keys[0] 对应的 table
 vector<int> keys={4444,1400,808};
-int cur_key=keys[0];
+int cur_key;
 int trigger=0;
 CTimer ab;
 id_map idmap;
@@ -45,6 +45,8 @@ void init(id_map& idmap,string& canid){
 	idmap.cur_id=canid;
 }
 
+struct timeval tv;
+char timestamp[128];
 void Callback_seed( void *obj, void *pa )
 {
 	++trigger;
@@ -55,6 +57,11 @@ void Callback_seed( void *obj, void *pa )
 		cout<<"seed has changed: "<<cur_key<<endl;
 	}
 	else cout<<"keys already used\n";
+	gettimeofday(&tv,NULL);
+	strftime(timestamp, 128, "%X", localtime(&tv.tv_sec));
+	int l = strlen(timestamp);
+	sprintf(timestamp+l, ".%03ld", tv.tv_usec/1000);
+	printf(" timestamp:%s\n",timestamp);
 }
 
 int main()
@@ -101,9 +108,9 @@ int main()
 	}
 	}*/
 	int i=0;
-
+    int cnt=0;
 	struct timeval time[2];
-	int cnt=0;
+    cur_key=keys[0];
 
 	vector<int> get_idpool(string d,int size,bool isfirst,string key);    //声明
     bool isfirst=true;   
@@ -125,9 +132,6 @@ int main()
 		sprintf(timestamp+l, ".%03ld", tv.tv_usec/1000);
 
 		if (nbytes > 0) {
-			printf("timestamp=%s ID=0x%x DLC=%d data[0]=0x%x\n",timestamp, frame.can_id,
-					frame.can_dlc, frame.data[0]);
-
 			string newid=to_string(frame.can_id);
 			if(cnt==0){//初始化                                                  
 				canid=to_string(frame.can_id);
@@ -162,11 +166,12 @@ int main()
 
 					}
 					else{
-						cout<<"CAN ID ERROR,reject receive \n";
+						printf("timestamp=%s ID=0x%x  CAN ID ERROR,reject receive \n",timestamp,frame.can_id);
 						return(0);
 					}
 				}
-				cout<<"success receved!"<<endl;
+					printf("timestamp=%s ID=0x%x DLC=%d data[0]=0x%x success received\n",timestamp, frame.can_id,
+					frame.can_dlc, frame.data[0]);
 			}
 			cnt++;
 			/*if(i==0)  time[0]=tv;

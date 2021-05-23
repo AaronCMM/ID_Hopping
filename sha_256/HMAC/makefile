@@ -4,7 +4,7 @@ all:
 	rm -f *.o
 	rm -f canrec
 	g++ -g -c algo_hmac.cpp ctimer.cpp  ge_seed.cpp ge_idpool.cpp 
-#	g++ -g canrec2.cpp -o canrec algo_hmac.o ge_idpool.o ctimer.o $(LNK_OPT)
+	g++ -g canrec2.cpp -o canrec algo_hmac.o ge_idpool.o ctimer.o ge_seed.o $(LNK_OPT)
 	g++ -g cansend.cpp -o cansend algo_hmac.o ge_idpool.o ctimer.o ge_seed.o $(LNK_OPT)
  
 clean:

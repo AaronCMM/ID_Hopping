@@ -40,9 +40,9 @@ sudo apt-get install can-utils
 
 CTimer.h   ctimer.cpp // 定时器函数
 
-generate_id.cpp   ----->  ge_id
+- 修改 ctimer.cpp 里的 milliseconds_sleep(100)；参数，可以对CAN数据实现毫秒级的发送；
 
-main.cpp  // 测试 HMAC函数
+generate_id.cpp   ----->  ge_id
 
 ge_seed.cpp       // 周期性更换seed
 
@@ -126,7 +126,39 @@ http://linux.vbird.org/linux_server/0440ntp.php
 
 key：4444，new_id：108,127,126,116,101（对应的hex：6c，7f，7e，74，65）
 
-key：1400，new_id：109，108,67,66,123（对应的hex：7b，42，43，6c，6d）
+key：1400，new_id：109，108,67,66,123（对应的hex：6d，6c，43，42，7b）
 
 key：808，new_id：109,113,121,75,123
+
+# 
+
+<font size=4 color=blue>05.23</font> （为了方便实验，模拟的是，每1.5 s 发送一次数据；6 s 更换 can_id；20 s 更换 shared_seed ）
+
+key 需要周期性地变化（刚开始的时候，所有ECU共享一个seed，为了多变性，一段时间间隔后，所有ECU需要同步更换 seed）（对时间要求严格，如何保证全部同步？）
+
+CANsend:
+
+![image-20210523232042944](https://i.loli.net/2021/05/23/WvfcGNgdl26nrSe.png)
+
+share_seed changed    epoch 1:
+
+<img src="https://i.loli.net/2021/05/23/m8PFze4kwtaAd5n.png" alt="image-20210523232115166" style="zoom:80%;" />
+
+eoch 2:
+
+<img src="https://i.loli.net/2021/05/23/nzUVdo8rKxgXPL5.png" alt="image-20210523233156051" style="zoom:67%;" />
+
+CANrev:
+
+<img src="https://i.loli.net/2021/05/23/c56doTtRjPk8m4w.png" alt="image-20210523232002832" style="zoom: 67%;" />
+
+share_seed changed  epoch 1:
+
+<img src="https://i.loli.net/2021/05/23/AkRJvQjG25HUrP1.png" alt="image-20210523232228766" style="zoom: 67%;" />
+
+epoch 2:
+
+<img src="https://i.loli.net/2021/05/23/XG7s3kCO4zw56e8.png" alt="image-20210523233210137" style="zoom:67%;" />
+
+<img src="https://i.loli.net/2021/05/23/4sLckNCKYh7gUIP.png" alt="image-20210523233219759" style="zoom:67%;" />
 

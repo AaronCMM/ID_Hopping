@@ -142,9 +142,15 @@ void Callback_seed( void *obj, void *pa )
 	old_key=new_key;
 	idpool.clear();
 	idpool=get_idpool("A0",id_pool_size,false,std::to_string(new_key));
+	reverse(idpool.begin(),idpool.end()); 
 	frame[0].can_id=0x0A0;
 	oid=newid=frame[0].can_id;
 	cnt=0;
+    gettimeofday(&tv,NULL);
+	strftime(timestamp, 128, "%X", localtime(&tv.tv_sec));
+	int l = strlen(timestamp);
+	sprintf(timestamp+l, ".%03ld", tv.tv_usec/1000);
+	printf(" cansend change_seed: timestamp:%s\n",timestamp);
 	//execute();
 }
 
@@ -193,7 +199,7 @@ int main()
 
     CTimer ab;
 	ab.addTimer(60,60,&Callback2,( void *)0x22,(void*)0xBD);    // 6s 更换ID
-	ab.addTimer(10,10,&UserCallback,( void *)0x11,(void*)0x4E);   // 1s 验证ID是否更换，并发送消息
+	ab.addTimer(15,15,&UserCallback,( void *)0x11,(void*)0x4E);   // 1s 验证ID是否更换，并发送消息
 	ab.addTimer(200,200,&Callback_seed,( void *)0x11,(void*)0x4E);
 
 	ab.start();
