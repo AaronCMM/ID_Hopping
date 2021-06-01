@@ -199,7 +199,7 @@ int main()
 
     CTimer ab;
 	ab.addTimer(60,60,&Callback2,( void *)0x22,(void*)0xBD);    // 6s 更换ID
-	ab.addTimer(15,15,&UserCallback,( void *)0x11,(void*)0x4E);   // 1s 验证ID是否更换，并发送消息
+	ab.addTimer(10,10,&UserCallback,( void *)0x11,(void*)0x4E);   // 1s 验证ID是否更换，并发送消息
 	ab.addTimer(200,200,&Callback_seed,( void *)0x11,(void*)0x4E);
 
 	ab.start();

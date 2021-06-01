@@ -29,7 +29,7 @@ struct id_map{
 };
  
 //vector<id_map> tables;      // tables[0] 代表 keys[0] 对应的 table
-vector<int> keys={4444,1400,808};
+vector<int> keys={4444,1400,808,888,520,784,1104};
 int cur_key;
 int trigger=0;
 CTimer ab;
@@ -93,20 +93,19 @@ int main()
 	bind(s, (struct sockaddr *)&addr, sizeof(addr));   //将套接字与can0绑定
 	printf("end of bind \n");
 
-	//定义接收规则，只接收表示符等于0x11的报文
-	rfilter[0].can_id   = 0x11;
+    //设置过滤规则
+	/*rfilter[0].can_id   = 0x11;
 	rfilter[0].can_mask = CAN_SFF_MASK;
-
-	//设置过滤规则
-	/*setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
-	  while(1) {
-	  nbytes = read(s, &frame, sizeof(frame));   //接收报文
-	//显示报文
+	setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
+	while(1) {
+	nbytes = read(s, &frame, sizeof(frame));   //接收报文
+	
 	if (nbytes > 0) {
 	printf("ID=0x%x DLC=%d data[0]=0x%x\n", frame.can_id,
 	frame.can_dlc, frame.data[0]);
 	}
 	}*/
+
 	int i=0;
     int cnt=0;
 	struct timeval time[2];
