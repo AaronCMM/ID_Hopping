@@ -61,16 +61,8 @@ int main()
 
 	int i=0;
 	struct can_frame framebuffer[50]; 
-//	nbytes = read(s, &framebuffer[i], sizeof(framebuffer[i]));   //接收报文
-//	if (nbytes > 0) {
-//		printf("timestamp=%s ID=0x%x DLC=%d data[0]=0x%x num=%d\n",timestamp, framebuffer[i].can_id, framebuffer[i].can_dlc, framebuffer[i].data[0],i);
-//	}
 
 	float time_use=0; 
-
-/* 	gettimeofday(&end,NULL);
-	time_use=(end.tv_sec-start.tv_sec);
-	printf("time_use is %f\n",time_use); */
 
 	// 模拟 攻击者保存 3秒 内总线上的信息，并分析数据来模拟发起攻击
 	while(time_use <=2){

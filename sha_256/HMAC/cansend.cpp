@@ -39,15 +39,6 @@ static const int period=20;      // seed 种子变更的周期 20s更换一次se
 int epoch=0;           //
 int new_key,old_key;   //
 
-/*void milliseconds_sleep(unsigned long mSec){
-	struct timeval tv;
-	tv.tv_sec=mSec/1000;
-	tv.tv_usec=(mSec%1000)*1000;
-	int err;
-	do{
-		err=select(0,NULL,NULL,NULL,&tv);
-	}while(err<0 && errno==EINTR);
-}*/
 void milliseconds_sleep(unsigned long mSec);
 int set_seed(string s,int epoch);
 vector<int> get_idpool(string d,int size,bool isfirst,string key);   
@@ -98,8 +89,6 @@ void  UserCallback( void *obj, void *pa )
 	sprintf(timestamp+l, ".%03ld", tv.tv_usec/1000);
 	
 	printf(" timestamp:%s\n",timestamp);
-
-	//printf(" UserCallback:: ( obj = 0x%x ) T_ID=%x timestamp:%s \n", obj,pa,timestamp);
 	
 	if(oid != newid){
 		oid=newid;
@@ -155,7 +144,8 @@ void Callback_seed( void *obj, void *pa )
 }
 
 int main()
-{
+{    
+	struct can_filter rfilter[1];
 	s = socket(PF_CAN, SOCK_RAW, CAN_RAW);  //创建套接字
 	strncpy(ifr.ifr_name, "vcan0",IFNAMSIZ - 1 );
 	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
@@ -176,11 +166,7 @@ int main()
 		perror("error bind");
 		return 1;
 	}
-
 	printf("end of bind \n");
-
-	//禁用过滤规则，本进程不接收报文，只负责发送
-	//setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
 
 	//生成报文
 	frame[0].can_id = 0x0A0;
@@ -206,83 +192,4 @@ int main()
 	getchar();
 	ab.stop();
 	exit(0);
-
-	/*while(1) {
-	  
-	  gettimeofday(&tv2,NULL);
-	  if(cnt==1) tv1=tv2;
-	  else{
-	  	int diff=(tv2.tv_sec-tv1.tv_sec)*1000+(tv2.tv_usec-tv1.tv_usec)/1000;   // ms
-		printf("diff: %d \t",diff);
-		if(diff<110){
-			nbytes = write(s, &frame[0], sizeof(frame[0]));  //发送frame[0]
-	  		printf("send messages successed!");
-	  		if (nbytes != sizeof(frame[0])) {
-	  			printf("Send Error frame[0]\n!");
-	  			break;    
-	  		}
-		}
-	  }
-
-	  nbytes = write(s, &frame[0], sizeof(frame[0]));  //发送frame[0]
-	  printf("send messages successed!");
-	  if (nbytes != sizeof(frame[0])) {
-	  	printf("Send Error frame[0]\n!");
-	  	break;        //发送错误，退出
-	  }
-	  milliseconds_sleep(100);    // 每0.1s 发送一次消息
-
-	}*/
-
-
-
-    /*  
-	run = true;
-	pid_t pid = -1;
-	int   status;
-	pid = fork();
-	int send_frame_times=100;
-	char* temp;
-	if(pid == -1) 
-	{ 
-		printf("\n\t创建进程失败\n\n");
-		return  -1;
-	}
-	else if(pid == 0) // 子进程，用于发送CAN帧
-	{
-		prctl(PR_SET_PDEATHSIG,SIGKILL);
-		printf("child process.\n");
-		printf("child  pid:%d,parent pid:%d\n",getpid(),getppid());
-
-		while (run && (send_frame_times > 0))
-		{
-			nbytes = write(s, &frame[0], sizeof(frame[0]));
-			printf("send!\n");
-			send_frame_times--;
-			milliseconds_sleep(100);
-		}
-
-		exit(0);
-	}
-	else // 父进程，接收CAN帧
-	{
-		install_sig();
-
-		while (run)
-		{
-
-			nbytes = read(s, &temp, sizeof(temp));
-			if (nbytes > 0)
-			{
-				printf("the receive content is: %x \n",&temp);
-				break;
-			}
-		}
-	}
-
-	close(s);
-	return 0;
-	*/
-
-//	return 0;
 }

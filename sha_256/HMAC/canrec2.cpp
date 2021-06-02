@@ -93,19 +93,6 @@ int main()
 	bind(s, (struct sockaddr *)&addr, sizeof(addr));   //将套接字与can0绑定
 	printf("end of bind \n");
 
-    //设置过滤规则
-	/*rfilter[0].can_id   = 0x11;
-	rfilter[0].can_mask = CAN_SFF_MASK;
-	setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
-	while(1) {
-	nbytes = read(s, &frame, sizeof(frame));   //接收报文
-	
-	if (nbytes > 0) {
-	printf("ID=0x%x DLC=%d data[0]=0x%x\n", frame.can_id,
-	frame.can_dlc, frame.data[0]);
-	}
-	}*/
-
 	int i=0;
     int cnt=0;
 	struct timeval time[2];
@@ -173,21 +160,19 @@ int main()
 					frame.can_dlc, frame.data[0]);
 			}
 			cnt++;
-			/*if(i==0)  time[0]=tv;
-			  else{
-
-			  int diff=(tv.tv_sec-time[0].tv_sec)*1000+(tv.tv_usec-time[0].tv_usec)/1000;
-			  printf("diff:%d \n",diff);
-			  if(diff<90){
-			  char *f="anomaly detected!";
-			  printf("anomaly detected!\n");
-			  nbytes = write(s, &f, sizeof(f));    // 通知发送端 发生异常，终止通信
-			  break;
-			  }
-			  else{
-			  time[0]=tv;
-			  }
-			  }*/
+/*			if(i==0)  time[0]=tv;
+			else
+			{
+				int diff=(tv.tv_sec-time[0].tv_sec)*1000+(tv.tv_usec-time[0].tv_usec)/1000;
+			  	printf("diff:%d \n",diff);
+			  	if(diff<900){
+					printf("anomaly detected!\n");
+			  		break;
+			  	}
+			  	else{
+			  		time[0]=tv;
+			  	}
+			}*/
 			++i;
 		}
 
